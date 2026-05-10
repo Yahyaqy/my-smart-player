@@ -1,1 +1,44 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>مشغل الفيديو الذكي</title>
+    <style>
+        body { background: #111; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
+        input, select { width: 80%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
+        button { padding: 10px 20px; background: #e50914; color: white; border: none; cursor: pointer; border-radius: 5px; }
+        video { width: 100%; max-width: 800px; margin-top: 20px; background: #000; }
+    </style>
+</head>
+<body>
+    <h2>نظام التشغيل الذكي</h2>
+    <input type="text" id="videoUrl" placeholder="أدخل رابط الفيديو (HTTP/HTTPS)">
+    <input type="text" id="userAgent" placeholder="أدخل الآيجنت (مثلاً: VLC/3.0.16 أو iPhone)">
+    <input type="text" id="subUrl" placeholder="أدخل رابط ترجمة SRT (اختياري)">
+    <br>
+    <button onclick="startPlayer()">تشغيل الآن</button>
+
+    <div id="playerNode"></div>
+
+    <script>
+        function startPlayer() {
+            const video = document.getElementById('videoUrl').value;
+            const ua = document.getElementById('userAgent').value;
+            const sub = document.getElementById('subUrl').value;
+
+            // بناء روابط الوسيط (Proxy)
+            const proxyVideo = `/api/proxy?url=${encodeURIComponent(video)}&ua=${encodeURIComponent(ua)}`;
+            const proxySub = sub ? `/api/subtitle?url=${encodeURIComponent(sub)}` : "";
+
+            let playerHtml = `<video controls autoplay><source src="${proxyVideo}" type="video/mp4">`;
+            if(proxySub) {
+                playerHtml += `<track label="العربية" kind="subtitles" srclang="ar" src="${proxySub}" default>`;
+            }
+            playerHtml += `</video>`;
+            
+            document.getElementById('playerNode').innerHTML = playerHtml;
+        }
+    </script>
+</body>
+</html>
 
