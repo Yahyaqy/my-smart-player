@@ -2,43 +2,135 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>مشغل الفيديو الذكي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مشغل الفيديو الذكي | Pro Player</title>
     <style>
-        body { background: #111; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
-        input, select { width: 80%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
-        button { padding: 10px 20px; background: #e50914; color: white; border: none; cursor: pointer; border-radius: 5px; }
-        video { width: 100%; max-width: 800px; margin-top: 20px; background: #000; }
+        body { 
+            background: #0f0f0f; 
+            color: #ffffff; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: #1e1e1e;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h2 { color: #e50914; margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; text-align: right; }
+        label { display: block; margin-bottom: 5px; font-size: 14px; color: #bbb; }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            background: #2b2b2b; 
+            border: 1px solid #444; 
+            border-radius: 8px; 
+            color: white; 
+            box-sizing: border-box;
+            transition: border 0.3s;
+        }
+        input:focus { border-color: #e50914; outline: none; }
+        button { 
+            width: 100%; 
+            padding: 15px; 
+            background: #e50914; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+        button:hover { background: #b20710; }
+        #playerContainer { 
+            margin-top: 30px; 
+            width: 100%; 
+            background: #000; 
+            border-radius: 10px; 
+            overflow: hidden;
+            display: none; /* يظهر فقط عند التشغيل */
+        }
+        video { width: 100%; display: block; }
+        .footer { margin-top: 20px; font-size: 12px; color: #666; }
     </style>
 </head>
 <body>
-    <h2>نظام التشغيل الذكي</h2>
-    <input type="text" id="videoUrl" placeholder="أدخل رابط الفيديو (HTTP/HTTPS)">
-    <input type="text" id="userAgent" placeholder="أدخل الآيجنت (مثلاً: VLC/3.0.16 أو iPhone)">
-    <input type="text" id="subUrl" placeholder="أدخل رابط ترجمة SRT (اختياري)">
-    <br>
-    <button onclick="startPlayer()">تشغيل الآن</button>
 
-    <div id="playerNode"></div>
+    <div class="container">
+        <h2>نظام التشغيل الذكي 🎬</h2>
+        
+        <div class="input-group">
+            <label>رابط الفيديو (Direct Link / HTTP):</label>
+            <input type="text" id="videoUrl" placeholder="أدخل رابط الـ mp4 هنا...">
+        </div>
+
+        <div class="input-group">
+            <label>هوية الجهاز (User-Agent):</label>
+            <input type="text" id="userAgent" placeholder="مثال: And$MyTV أو iPhone">
+        </div>
+
+        <div class="input-group">
+            <label>رابط الترجمة (SRT):</label>
+            <input type="text" id="subUrl" placeholder="أدخل رابط ملف الـ .srt (اختياري)">
+        </div>
+
+        <button onclick="startPlayer()">▶ تشغيل الفيديو الآن</button>
+
+        <div id="playerContainer">
+            <div id="playerNode"></div>
+        </div>
+    </div>
+
+    <div class="footer">تعمل هذه الأداة عبر سيرفر وسيط لتخطي قيود HTTP والـ User-Agent</div>
 
     <script>
         function startPlayer() {
-            const video = document.getElementById('videoUrl').value;
-            const ua = document.getElementById('userAgent').value;
-            const sub = document.getElementById('subUrl').value;
+            const video = document.getElementById('videoUrl').value.trim();
+            const ua = document.getElementById('userAgent').value.trim();
+            const sub = document.getElementById('subUrl').value.trim();
 
-            // بناء روابط الوسيط (Proxy)
+            if (!video) {
+                alert("يرجى إدخال رابط الفيديو أولاً");
+                return;
+            }
+
+            // إظهار حاوية المشغل
+            document.getElementById('playerContainer').style.display = 'block';
+
+            // بناء روابط الـ API (الوسيط)
+            // نستخدم encodeURIComponent لضمان أن الروابط لا تختلط ببعضها
             const proxyVideo = `/api/proxy?url=${encodeURIComponent(video)}&ua=${encodeURIComponent(ua)}`;
             const proxySub = sub ? `/api/subtitle?url=${encodeURIComponent(sub)}` : "";
 
-            let playerHtml = `<video controls autoplay><source src="${proxyVideo}" type="video/mp4">`;
-            if(proxySub) {
-                playerHtml += `<track label="العربية" kind="subtitles" srclang="ar" src="${proxySub}" default>`;
+            let playerHtml = `
+                <video id="videoPlayer" controls autoplay>
+                    <source src="${proxyVideo}" type="video/mp4">
+            `;
+
+            if (proxySub) {
+                playerHtml += `
+                    <track label="العربية" kind="subtitles" srclang="ar" src="${proxySub}" default>
+                `;
             }
+
             playerHtml += `</video>`;
-            
+
+            // وضع الكود داخل الصفحة
             document.getElementById('playerNode').innerHTML = playerHtml;
+
+            // التمرير تلقائياً للمشغل
+            document.getElementById('playerContainer').scrollIntoView({ behavior: 'smooth' });
         }
     </script>
+
 </body>
 </html>
-
