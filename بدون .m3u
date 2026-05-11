@@ -1,0 +1,4 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="Breaking.Bad.S01E01" tvg-logo="https://image.tmdb.org/t/p/w500/ggm8bbub68v0vWy9tq69uS0S650.jpg" group-title="English Series", Breaking Bad - S01E01
+#EXTVLCOPT:http-user-agent=And$MyTV
+http://130.193.166.197/nasstore/EnglishTvSeries1/BreakingBad-S01E01.mp4
